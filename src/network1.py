@@ -2,6 +2,7 @@ import random
 import numpy as np
 import matplotlib.pyplot as plt
 from typing import List
+import networkx as nx
 
 class Network(object):
     
@@ -45,6 +46,51 @@ class Network(object):
         for b, w in zip(self.biases, self.weights):
             imput = activation_function(w @ imput + b)
         return imput
+    
+    def draw_network(self):
+        G = nx.Graph()
+        pos = {}
+        labels = {}
+        node_colors = []
+        node_count = 0
+
+        # Create nodes
+        for layer_index, layer_size in enumerate(self.sizes):
+            for neuron_index in range(layer_size):
+                node_id = node_count
+                G.add_node(node_id)
+                pos[node_id] = (layer_index, -neuron_index)
+                
+                if layer_index == 0:
+                    labels[node_id] = f'input {neuron_index + 1}'
+                else:
+                    bias = self.biases[layer_index - 1][neuron_index, 0]
+                    weight = self.weights[layer_index - 1][neuron_index]
+                    weight_str = '\n|'.join([f'{w:.2f}|' for w in weight])
+                    labels[node_id] = f'bias: |{bias:.2f}|\nweights:\n|{weight_str}'
+
+                node_count += 1
+
+                # Assign colors based on the layer
+                if layer_index == 0:
+                    node_colors.append('green')  # Initial layer color
+                elif layer_index == len(self.sizes) - 1:
+                    node_colors.append('red')  # Final layer color
+                else:
+                    node_colors.append('skyblue')  # Hidden layer color
+
+        # Create edges
+        node_count = 0
+        for layer_index, (layer_size, next_layer_size) in enumerate(zip(self.sizes[:-1], self.sizes[1:])):
+            for neuron_index in range(layer_size):
+                for next_neuron_index in range(next_layer_size):
+                    G.add_edge(node_count + neuron_index, node_count + layer_size + next_neuron_index)
+            node_count += layer_size
+
+        # Draw the graph
+        plt.figure(figsize=(12, 8))
+        nx.draw(G, pos, labels=labels, with_labels=True, node_size=12000, node_color=node_colors)
+        plt.show()
 
 def sigmoid(z: float) -> float:
     return 1/(1+np.exp(-z))
@@ -69,13 +115,16 @@ def plot_function(function):
     plt.show()
 
 def main():
-    plot_function(relu)
+    # plot_function(relu)
     # Ejemplo de uso del forward_propagation"
     network = Network([2, 3, 1])
     #print(network.biases)
     #print(network.weights)
-    imput_data = [np.array([[1],[2]])][0]
-    print(network.forward_propagation(imput_data, sigmoid))
+    #imput_data = [np.array([[1],[2]])][0]
+    #print(network.forward_propagation(imput_data, sigmoid))
+    print(network.weights)
+    print(network.biases)
+    network.draw_network()
     
 if __name__ == "__main__":
     main()
