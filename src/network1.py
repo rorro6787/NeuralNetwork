@@ -2,6 +2,7 @@ import random
 import numpy as np
 import matplotlib.pyplot as plt
 from typing import List
+from typing import Any
 import networkx as nx
 
 class Network(object):
@@ -47,7 +48,7 @@ class Network(object):
             imput = activation(w @ imput + b)
         return imput
     
-    def cuadratic_cost(self, data: List[tuple[any, List[float]]], activation) -> float:
+    def cuadratic_cost(self, data: List[tuple[Any, List[float]]], activation) -> float:
         """
         The function cuadratic_cost calculates the MSE of the network to a given imput
         sizes = [2, 4, 6], it would be a 3 layers neural network: the first layer with 2 
@@ -123,6 +124,16 @@ def softmax(z: float) -> float:
     exp_z = np.exp(z - np.max(z))
     return exp_z / np.sum(exp_z, axis=0, keepdims=True)
 
+def imput_vector(imput: List[float]):
+    """
+    Takes a network imput in the form [a, b, ., n] and transforms 
+    it into a vector that satisfies the dimensions: [[a],
+                                                     [b]
+                                                     [.],
+                                                     [n]]
+    """
+    return [[value] for value in imput]
+
 def plot_function(function):
     x = np.linspace(-10, 10, 400)
     y = function(x)
@@ -139,7 +150,10 @@ def main():
     # plot_function(relu)
     # Ejemplo de uso del forward_propagation"
     network = Network([2, 3, 1])
-    a = [([1, 2], [1, 2])]
+    # network.draw_network()
+    # print(network.forward_propagation([[1], [2]], sigmoid))
+    imput = imput_vector([1,2])
+    a = [(imput, [1])]
     print(network.cuadratic_cost(a, sigmoid))
     #print(network.biases)
     #print(network.weights)
