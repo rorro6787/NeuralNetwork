@@ -37,15 +37,36 @@ class Network(object):
         """
         self.weights = [np.random.rand(y, x) for x, y in zip(sizes[:-1], sizes[1:])]
     
-    def forward_propagation(self, imput, activation_function):
+    def forward_propagation(self, imput, activation):
         """
         Given an imput to the neural network this function
         calculates the output given the weights, biases given the
         activation function
         """
         for b, w in zip(self.biases, self.weights):
-            imput = activation_function(w @ imput + b)
+            imput = activation(w @ imput + b)
         return imput
+    
+    def cuadratic_cost(self, data: List[tuple[any, List[float]]], activation) -> float:
+        """
+        The function cuadratic_cost calculates the MSE of the network to a given imput
+        sizes = [2, 4, 6], it would be a 3 layers neural network: the first layer with 2 
+        neurons, the second one with 4 and the third one with 6.
+
+        Args:
+            data (List[tuple[any, List[float]]]): A list of the test objets which each one
+            of them consists of an imput with type undefined and the real output that is a 
+            list with as many values as output nodes has our network
+        """
+        cost: float = 0.0
+        for kv in data:
+            outp_real = kv[1]
+            outp_model = self.forward_propagation(kv[0], activation)[0]
+            if len(outp_real) != len(outp_model):
+                raise Exception("Data test dimensions not valid")
+            for outp_real_i, outp_model_i in zip(outp_real, outp_model):
+                cost += (outp_real_i - outp_model_i)**2
+        return cost/(2*len(data))      
     
     def draw_network(self):
         G = nx.Graph()
@@ -118,13 +139,15 @@ def main():
     # plot_function(relu)
     # Ejemplo de uso del forward_propagation"
     network = Network([2, 3, 1])
+    a = [([1, 2], [1, 2])]
+    print(network.cuadratic_cost(a, sigmoid))
     #print(network.biases)
     #print(network.weights)
     #imput_data = [np.array([[1],[2]])][0]
     #print(network.forward_propagation(imput_data, sigmoid))
-    print(network.weights)
-    print(network.biases)
-    network.draw_network()
+    # print(network.weights)
+    # print(network.biases)
+    # network.draw_network()
     
 if __name__ == "__main__":
     main()
