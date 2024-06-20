@@ -1,4 +1,3 @@
-import random
 import numpy as np
 import matplotlib.pyplot as plt
 from typing import List
@@ -6,7 +5,7 @@ from typing import Any
 import networkx as nx
 
 class Network(object):
-    
+
     def __init__(self, sizes: List[int]):
         """
         The variable sizes contains the dimensions of our neural network. So, if
@@ -31,10 +30,9 @@ class Network(object):
         self.biases = [np.random.rand(y, 1) for y in sizes[1:]]
         """
         List with the matrixes of the weights of the neural network
-        If sizes = [2, 3, 1], then weights = [List([a, b, c],
-                                                   [d, e, f]), List([h],
-                                                                    [i],
-                                                                    [j])]
+        If sizes = [2, 3, 1], then weights = [List([a, b],
+                                                   [c, d], 
+                                                   [e, f]), List([h], [i], [j])]
         """
         self.weights = [np.random.rand(y, x) for x, y in zip(sizes[:-1], sizes[1:])]
     
@@ -75,14 +73,12 @@ class Network(object):
         labels = {}
         node_colors = []
         node_count = 0
-
         # Create nodes
         for layer_index, layer_size in enumerate(self.sizes):
             for neuron_index in range(layer_size):
                 node_id = node_count
                 G.add_node(node_id)
                 pos[node_id] = (layer_index, -neuron_index)
-                
                 if layer_index == 0:
                     labels[node_id] = f'input {neuron_index + 1}'
                 else:
@@ -90,9 +86,7 @@ class Network(object):
                     weight = self.weights[layer_index - 1][neuron_index]
                     weight_str = '\n|'.join([f'{w:.2f}|' for w in weight])
                     labels[node_id] = f'bias: |{bias:.2f}|\nweights:\n|{weight_str}'
-
                 node_count += 1
-
                 # Assign colors based on the layer
                 if layer_index == 0:
                     node_colors.append('green')  # Initial layer color
@@ -100,7 +94,6 @@ class Network(object):
                     node_colors.append('red')  # Final layer color
                 else:
                     node_colors.append('skyblue')  # Hidden layer color
-
         # Create edges
         node_count = 0
         for layer_index, (layer_size, next_layer_size) in enumerate(zip(self.sizes[:-1], self.sizes[1:])):
@@ -108,7 +101,6 @@ class Network(object):
                 for next_neuron_index in range(next_layer_size):
                     G.add_edge(node_count + neuron_index, node_count + layer_size + next_neuron_index)
             node_count += layer_size
-
         # Draw the graph
         plt.figure(figsize=(12, 8))
         nx.draw(G, pos, labels=labels, with_labels=True, node_size=12000, node_color=node_colors)
@@ -137,7 +129,6 @@ def imput_vector(imput: List[float]):
 def plot_function(function):
     x = np.linspace(-10, 10, 400)
     y = function(x)
-    
     plt.plot(x, y, label=str(function.__name__) + '(x)')
     plt.title(str(function.__name__) + ' function')
     plt.xlabel('x')
@@ -152,13 +143,14 @@ def main():
     network = Network([2, 3, 1])
     # network.draw_network()
     # print(network.forward_propagation([[1], [2]], sigmoid))
-    imput = imput_vector([1,2])
-    a = [(imput, [1])]
+    imput1 = imput_vector([1,2])
+    output1 = [1]
+    a = [(imput1, output1)]
     print(network.cuadratic_cost(a, sigmoid))
-    #print(network.biases)
-    #print(network.weights)
-    #imput_data = [np.array([[1],[2]])][0]
-    #print(network.forward_propagation(imput_data, sigmoid))
+    # print(network.biases)
+    # print(network.weights)
+    # imput_data = [np.array([[1],[2]])][0]
+    # print(network.forward_propagation(imput_data, sigmoid))
     # print(network.weights)
     # print(network.biases)
     # network.draw_network()
