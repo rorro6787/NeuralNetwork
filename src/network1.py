@@ -4,6 +4,26 @@ from typing import List
 from typing import Any
 import networkx as nx
 
+def sigmoid(z: float) -> float:
+    return 1/(1+np.exp(-z))
+
+def relu(z: float) -> float:
+    return np.maximum(0, z)
+
+def softmax(z: float) -> float:
+    exp_z = np.exp(z - np.max(z))
+    return exp_z / np.sum(exp_z, axis=0, keepdims=True)
+
+def imput_vector(imput: List[float]):
+    """
+    Takes a network imput in the form [a_1, a_2, ..., a_n] and transforms 
+    it into a vector that satisfies the dimensions: [[a_1],
+                                                     [a_2]
+                                                     [...],
+                                                     [a_n]]
+    """
+    # return np.array([[value] for value in imput])
+    return [[value] for value in imput]
 class Network(object):
 
     def __init__(self, sizes: List[int]):
@@ -36,7 +56,7 @@ class Network(object):
         """
         self.weights = [np.random.rand(y, x) for x, y in zip(sizes[:-1], sizes[1:])]
     
-    def forward_propagation(self, imput, activation):
+    def forward_propagation(self, imput, activation=sigmoid):
         """
         Given an imput to the neural network this function
         calculates the output given the weights, biases given the
@@ -46,7 +66,7 @@ class Network(object):
             imput = activation(w @ imput + b)
         return imput
     
-    def cuadratic_cost(self, data: List[tuple[Any, List[float]]], activation) -> float:
+    def cuadratic_cost(self, data: List[tuple[Any, List[float]]], activation=sigmoid) -> float:
         """
         The function cuadratic_cost calculates the MSE of the network to a given imput
         sizes = [2, 4, 6], it would be a 3 layers neural network: the first layer with 2 
@@ -106,27 +126,7 @@ class Network(object):
         nx.draw(G, pos, labels=labels, with_labels=True, node_size=12000, node_color=node_colors)
         plt.show()
 
-def sigmoid(z: float) -> float:
-    return 1/(1+np.exp(-z))
-
-def relu(z: float) -> float:
-    return np.maximum(0, z)
-
-def softmax(z: float) -> float:
-    exp_z = np.exp(z - np.max(z))
-    return exp_z / np.sum(exp_z, axis=0, keepdims=True)
-
-def imput_vector(imput: List[float]):
-    """
-    Takes a network imput in the form [a, b, ., n] and transforms 
-    it into a vector that satisfies the dimensions: [[a],
-                                                     [b]
-                                                     [.],
-                                                     [n]]
-    """
-    return [[value] for value in imput]
-
-def plot_function(function):
+def plot_function(function=sigmoid):
     x = np.linspace(-10, 10, 400)
     y = function(x)
     plt.plot(x, y, label=str(function.__name__) + '(x)')
@@ -138,7 +138,7 @@ def plot_function(function):
     plt.show()
 
 def main():
-    # plot_function(relu)
+    # plot_function()
     # Ejemplo de uso del forward_propagation"
     network = Network([2, 3, 1])
     # network.draw_network()
@@ -146,7 +146,8 @@ def main():
     imput1 = imput_vector([1,2])
     output1 = [1]
     a = [(imput1, output1)]
-    print(network.cuadratic_cost(a, sigmoid))
+    # print(imput1)
+    print(network.cuadratic_cost(a, activation=sigmoid))
     # print(network.biases)
     # print(network.weights)
     # imput_data = [np.array([[1],[2]])][0]
