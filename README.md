@@ -45,7 +45,9 @@ This repository contains a basic implementation of a neural network, aiming to p
 5. (Optional) Create a virtual environment:
    
     ```sh
-    python -m venv venv venv\Scripts\activate  # On macOS/Linux use 'python -m venv venv source venv/bin/activate'
+    python -m venv venv
+    .\venv\Scripts\activate  # On macOS/Linux use 'python -m venv venv
+                                                   source venv/bin/activate'
     ```
 7. Install the required packages:
    
