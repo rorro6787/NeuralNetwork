@@ -24,6 +24,18 @@ def imput_vector(imput: List[float]):
     """
     # return np.array([[value] for value in imput])
     return [[value] for value in imput]
+
+def plot_function(function=sigmoid):
+    x = np.linspace(-10, 10, 400)
+    y = function(x)
+    plt.plot(x, y, label=str(function.__name__) + '(x)')
+    plt.title(str(function.__name__) + ' function')
+    plt.xlabel('x')
+    plt.ylabel(str(function.__name__) + '(x)')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
 class Network(object):
 
     def __init__(self, sizes: List[int]):
@@ -79,12 +91,15 @@ class Network(object):
         """
         cost: float = 0.0
         for kv in data:
-            outp_real = kv[1]
-            outp_model = self.forward_propagation(kv[0], activation)[0]
+            outp_real = kv[1] # [[1], [2]]
+            outp_model = self.forward_propagation(kv[0], activation) # [[0.9], [0.98]]
             if len(outp_real) != len(outp_model):
                 raise Exception("Data test dimensions not valid")
-            for outp_real_i, outp_model_i in zip(outp_real, outp_model):
-                cost += (outp_real_i - outp_model_i)**2
+            
+            model_substract = np.subtract(outp_real, outp_model) # [[1-0.9], [2-0.98]]
+            model_substract_square = np.square(model_substract) # [[res1^2], [res2^2]]
+
+            cost = np.sum(model_substract_square) # res1^2 + res2^2
         return cost/(2*len(data))      
     
     def draw_network(self):
@@ -126,25 +141,15 @@ class Network(object):
         nx.draw(G, pos, labels=labels, with_labels=True, node_size=12000, node_color=node_colors)
         plt.show()
 
-def plot_function(function=sigmoid):
-    x = np.linspace(-10, 10, 400)
-    y = function(x)
-    plt.plot(x, y, label=str(function.__name__) + '(x)')
-    plt.title(str(function.__name__) + ' function')
-    plt.xlabel('x')
-    plt.ylabel(str(function.__name__) + '(x)')
-    plt.legend()
-    plt.grid(True)
-    plt.show()
-
 def main():
     # plot_function()
     # Ejemplo de uso del forward_propagation"
-    network = Network([2, 3, 1])
+    network = Network([3, 30, 4])
     # network.draw_network()
     # print(network.forward_propagation([[1], [2]], sigmoid))
-    imput1 = imput_vector([1,2])
-    output1 = [1]
+    imput1 = imput_vector([1,2,3])
+    output1 = imput_vector([1,2,3,4])
+    #print(imput1-output1)
     a = [(imput1, output1)]
     # print(imput1)
     print(network.cuadratic_cost(a, activation=sigmoid))
