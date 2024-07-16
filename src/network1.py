@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from typing import List
 from typing import Any
 import networkx as nx
+import random
 
 def sigmoid(z: float) -> float:
     return 1/(1+np.exp(-z))
@@ -37,7 +38,6 @@ def plot_function(function=sigmoid):
     plt.show()
 
 class Network(object):
-
     def __init__(self, sizes: List[int]):
         """
         The variable sizes contains the dimensions of our neural network. So, if
@@ -78,14 +78,14 @@ class Network(object):
             imput = activation(w @ imput + b)
         return imput
     
-    def cuadratic_cost(self, data: List[tuple[Any, List[float]]], activation=sigmoid) -> float:
+    def cuadratic_cost(self, data, activation=sigmoid) -> float:
         """
         The function cuadratic_cost calculates the MSE of the network to a given imput
         sizes = [2, 4, 6], it would be a 3 layers neural network: the first layer with 2 
         neurons, the second one with 4 and the third one with 6.
 
         Args:
-            data (List[tuple[any, List[float]]]): A list of the test objets which each one
+            data: A list of the test objets which each one
             of them consists of an imput with type undefined and the real output that is a 
             list with as many values as output nodes has our network
         """
@@ -95,12 +95,38 @@ class Network(object):
             outp_model = self.forward_propagation(kv[0], activation) # [[0.9], [0.98]]
             if len(outp_real) != len(outp_model):
                 raise Exception("Data test dimensions not valid")
-            
             model_substract = np.subtract(outp_real, outp_model) # [[1-0.9], [2-0.98]]
             model_substract_square = np.square(model_substract) # [[res1^2], [res2^2]]
-
             cost = np.sum(model_substract_square) # res1^2 + res2^2
         return cost/(2*len(data))      
+    
+    def SGD(self, train_data, epochs, mini_batch_size, learning_rate):
+        """
+        The function SGD divides the list of train_data in a list of minibatches
+        that slides the original list given a mini_batch_size. Then it calculates the 
+        gradient descent of each mini_batch calling the function mini_batch_GD. It repeats
+        this process epochs number of times.
+        Args:
+            train_data: List of tuples of the imput with the desired output
+            epochs: Number of training cycles fot the network
+            mini_batch_size: Size of the mini batches
+            learning_rate: The learning rate of the network
+        """
+        n = len(train_data)
+        for i in range(epochs):
+            random.shuffle(train_data)
+            mini_batches = [train_data[k:k+mini_batch_size] for k in range(0, n, mini_batch_size)]
+            # mini_batches = [ 
+            #                   train_data[0:mini_batch_size]
+            #                   train_data[mini_batch_size:2*mini_batch_size]
+            #                   ...                 
+            #                   train_data[n-mini_batch_size:n]
+            # ]
+            for mini_batch in mini_batches:
+                self.mini_batch_GD(mini_batch, learning_rate)
+    
+    def mini_batch_GD(self, mini_batch, learning_rate):
+        return 0
     
     def draw_network(self):
         G = nx.Graph()
