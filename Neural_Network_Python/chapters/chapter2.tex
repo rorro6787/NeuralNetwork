@@ -1,0 +1,151 @@
+\documentclass[../main]{subfiles}
+\usepackage{lastpage,xr,refcount,etoolbox}
+%\externaldocument{../Appendices/Appendix1-CodigosBase}
+\begin{document}
+\chapter{How do Neural Networks learn?}
+
+{
+\hypersetup{linkcolor=black}
+\renewcommand{\contentsname}{How do Neural Networks learn?}
+\minitoc % Muestra minitoc
+}
+A neural network can be viewed as a complex mathematical function with an arbitrary number of variables. Some of the most powerful generative models have billions of trainable parameters.
+
+When we say we are training a neural network, we mean we are attempting to find the optimal set of weights and biases for the training dataset. Training a neural network involves minimizing a loss function for the training data. However, due to the immense number of variables, finding an analytical solution to this problem is infeasible.
+\section{The loss function}
+What we aim to create is an algorithm that allows us to find a set of weights and biases that accurately approximate the training data. We denote the desired output of the network for the input x as y(x):
+\begin{equation*}
+    C(w, b) = \frac{1}{2n}\sum_{x}||y(x)-a(x)||^2
+\end{equation*}
+For a given training input x, which can have various shapes depending on the problem, y(x) will be a vector filled with 0s and a 1 in the position that represents the desired output. In contrast, a(x) is the output of the network and will also be a vector with the same shape as y(x). The value the network chooses is the one with the highest probability in a(x). The subtraction operation between the two vectors is defined as follows:
+\begin{equation*}
+    y(x) = \begin{pmatrix}
+0 \\ 
+1 \\ 
+...       \\
+0 
+\end{pmatrix} \ \ \quad a(x) = \begin{pmatrix}
+0.35 \\ 
+0.02 \\ 
+...       \\
+0.98
+\end{pmatrix}
+\end{equation*}\vspace{1mm}
+\begin{equation*}
+    y(x)-a(x) = (0-0.35)+(1-0.02)+...+(0-0.98)
+\end{equation*}
+This loss function is typically referred to as the MSE, and it indicates how well the network's predictions match the actual outputs. Our goal is to minimize the value of this error function, ideally to 0, by adjusting the values of the weights and biases.
+\section{Gradient Descent}
+Calculus tells us that when we make small adjustments to the values of the weights, the change in the loss function can be approximated as follows (the same principle applies to biases, but let's focus on weights for the moment):
+\begin{equation*}
+    \Delta C \approx \frac{\partial C}{\partial w_1}\Delta w_1+ \frac{\partial C}{\partial w_2}\Delta w_2+...+\frac{\partial C}{\partial w_m}\Delta w_m
+\end{equation*}
+Since we want to minimize C, we need to find values for \(\Delta w_i\) that make \(\Delta C\) negative. We then define the vector of changes in \( \mathbf{w} \) and the vector of the gradient of \( C \) as follows:
+\begin{equation*}
+    \Delta w = \begin{pmatrix}
+\Delta w_1 \\ 
+\Delta w_2 \\ 
+...       \\
+\Delta w_m
+\end{pmatrix} \ \ \quad \nabla C = \begin{pmatrix}
+\frac{\partial C}{\partial w_1} \vspace{0.15cm}\\ 
+\frac{\partial C}{\partial w_2} \vspace{0.15cm}\\ 
+...       \vspace{0.15cm}\\
+\frac{\partial C}{\partial w_m}
+\end{pmatrix}
+\end{equation*}
+Now, using the vector dot product, we can rewrite the change in the loss function in terms of the gradient and the change in weights:
+\begin{equation*}
+    \Delta C \approx \nabla C\cdot\Delta w 
+\end{equation*}
+The amazing part about this equation is that it clearly shows how to ensure $\Delta C$ is negative. This introduces our first hyperparameter, the learning rate: $\eta$. The learning rate must be greater than 0 and controls the step size of the weight updates during training. 
+\begin{equation*}
+    \Delta w = -\eta \nabla C
+\end{equation*}
+\begin{equation*}
+    \Delta C = -\eta ||\nabla C||^2
+\end{equation*}
+\begin{equation*}
+    w' = w -\eta \nabla C
+\end{equation*}
+Now we have an expression that we can use to adjust the weights of the network in each iteration. Calculus tells us that if we keep applying this update rule repeatedly, we will continue decreasing C and potentially reach a global minimum. In conclusion, to minimize the loss function, we apply gradient descent to each of the weights and biases as follows:
+\begin{equation*}
+    w'_k = w_k - \eta \frac{\partial C}{\partial w_k}
+\end{equation*}
+\begin{equation*}
+    b'_l = b_l - \eta \frac{\partial C}{\partial b_l}
+\end{equation*}
+We can also express the gradient descent update rules in matrix form, taking into account that the subtraction operator is the usual element-by-element subtraction:
+\begin{equation*}
+w' = w-\eta\cdot\begin{pmatrix}
+\frac{\partial C}{\partial w_{1}}\vspace{0.15cm}\\ 
+\frac{\partial C}{\partial w_{2}}\vspace{0.15cm}\\ 
+...\vspace{0.15cm}\\
+\frac{\partial C}{\partial w_{k}}
+\end{pmatrix}
+\quad \quad b' = b - \eta \cdot \begin{pmatrix}
+\frac{\partial C}{\partial b_{1}} \vspace{0.15cm}\\ 
+\frac{\partial C}{\partial b_{2}} \vspace{0.15cm}\\ 
+...       \vspace{0.15cm}\\
+\frac{\partial C}{\partial b_{l}}
+\end{pmatrix}
+\end{equation*}
+\section{Stochastic Gradient Descent}
+Up to this point, we have all the mathematical tools needed to minimize the loss function and successfully train our neural network. However, the way we have defined the training process requires performing gradient descent for every single training data point. Studies show that as the number of parameters in the network increases, the calculations become significantly slower.
+
+To address this issue, stochastic gradient descent (SGD) was developed. SGD is similar to the original gradient descent, but instead of computing the gradient \(\nabla C\) for the entire dataset, it estimates the gradient by computing \(\nabla C_x\) for a small sample of randomly chosen training inputs. By averaging over this small sample, we can quickly obtain a good estimate of the true gradient \(\nabla C\), which helps speed up gradient descent and thus accelerates the learning process.
+
+Stochastic Gradient Descent (SGD) works by randomly choosing \( m \) examples from the entire dataset of \( n \) elements. These \( m \) examples constitute what we call the mini-batch. Once the mini-batch is sufficiently large, we use the stochastic approximation of \(\nabla C_{X_j}\) to \(\nabla C_x\):
+\begin{equation*}
+    \frac{1}{m}\sum_{j=1}^{m} \nabla C_{X_j}\approx \frac{1}{n}\sum_{x} \nabla C_x = \nabla C
+\end{equation*}
+\begin{equation*}
+    \nabla C \approx  \frac{1}{m}\sum_{j=1}^{m} \nabla C_{X_j} 
+\end{equation*}
+To connect this explicitly to learning in neural networks, suppose $w_k$ and $b_l$ denote the weights and biases in our neural network. Then stochastic gradient descent works by picking out a randomly chosen mini-batch of training inputs and training with those. The equations that describes this are:
+\begin{equation*}
+    w'_k \approx w_k - \frac{\eta}{m} \sum_{j=1}^{m}\frac{\partial C_{X_j}}{\partial w_k}
+\end{equation*}
+\begin{equation*}
+    b'_l \approx b_l - \frac{\eta}{m} \sum_{j=1}^{m}\frac{\partial C_{X_j}}{\partial b_l}
+\end{equation*}
+\section{Code of the SGD}
+Now it's time to move on to the code implementation of everything we have explained so far. Note that we haven't yet discussed how to update the weight and bias matrices. This process involves a complex algorithm called backpropagation, which requires extensive calculus. I prefer to reserve that explanation for later. For now, let's assume that when we call the backpropagation function, it simply works and returns the matrices with updated weights and biases. To begin with, we implement the function that split the training set in multiple minibatches with a fixes size:
+\begin{lstlisting}
+def SGD(self, training_data, epochs, mini_batch_size, eta):
+    if test_data: n_test = len(test_data)
+    n = len(training_data)
+    for j in xrange(epochs):
+        random.shuffle(training_data)
+        mini_batches = [training_data[k:k+mini_batch_size] for k in xrange(0, n, mini_batch_size)]
+        
+        # If mini_batch_size = 10, then minibatches will be:
+        # mini_batches = [ 
+        # train_data[0:10], train_data[10:20], ..., train_data[n-10:n]
+        # ]
+        
+        for mini_batch in mini_batches:
+            self.update_mini_batch(mini_batch, eta)
+
+        if test_data:
+            test_results = [(np.argmax(self.forward_propagation(x)), y) for (x, y) in test_data]
+            output = sum(int(x == y) for (x, y) in test_results)
+            print(f"Epoch {i}: {output} / {n_test}")
+        else:
+            print(f"Epoch {i} complete")
+\end{lstlisting}
+The second part, is to implement the function that updates the network's weights and biases by applying gradient descent using backpropagation to a single mini batch (we can apply the formulas learnt without paying attention about how the backpropagation function calculates the weights and biases:
+\begin{lstlisting}
+def update_mini_batch(self, mini_batch, eta):
+    nabla_b = [np.zeros(b.shape) for b in self.biases]
+    nabla_w = [np.zeros(w.shape) for w in self.weights]
+    
+    for x, y in mini_batch:
+        delta_nabla_b, delta_nabla_w = self.backprop(x, y)
+        nabla_b = [nb+dnb for nb, dnb in zip(nabla_b, delta_nabla_b)]
+        nabla_w = [nw+dnw for nw, dnw in zip(nabla_w, delta_nabla_w)]
+        
+    self.weights = [w-(eta/len(mini_batch))*nw for w, nw in zip(self.weights, nabla_w)]
+    self.biases = [b-(eta/len(mini_batch))*nb for b, nb in zip(self.biases, nabla_b)]
+\end{lstlisting}
+\end{document}
