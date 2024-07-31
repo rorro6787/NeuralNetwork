@@ -1,46 +1,44 @@
 # Basic Neural Network in Python
 
-Welcome to the Basic Neural Network repository! This project is dedicated to building a simple neural network from scratch using basic Python. It serves as an educational tool to understand the fundamental concepts behind neural networks without relying on advanced libraries.
+This repository contains code and resources for training a computer vision model using the YOLO (You Only Look Once) architecture to detect and track handwritten digits in videos. The project also includes functionality to perform arithmetic operations based on the detected digits.
 
 ## Table of Contents
 
 - [Introduction](#introduction)
 - [Features](#features)
-- [Requirements](#requirements)
 - [Installation](#installation)
 - [Usage](#usage)
+- [Dataset](#dataset)
 - [Contributing](#contributing)
-- [Acknowledgements](#acknowledgements)
 
 ## Introduction
 
-This repository contains a basic implementation of a neural network, aiming to provide an understanding of how neural networks function at a fundamental level. It covers the core concepts such as forward propagation, backpropagation, and training using gradient descent.
+The goal of this project is to create a system that can automatically detect and track handwritten digits in video frames and calculate operations based on those digits. This can be useful for educational purposes, automated grading systems, and more.
 
 ## Features
 
-- Basic implementation of a neural network in Python
-- Forward propagation
-- Backpropagation
-- Training using gradient descent
-- Simple and easy-to-understand code
-- PDF explanation of all the code and calculus behind: [Donwload the PDF document](https://github.com/rorro6787/NeuralNetwork/blob/main/Neural_Network_Python.pdf)
+- Detection and tracking of handwritten digits in video using YOLO
+- Preprocessing and augmentation of training data
+- Training scripts for custom YOLO models
+- Evaluation scripts to assess model performance
+- Arithmetic operations on detected digits
+- PDF explanation of all the code: [Donwload the PDF document]()
 
 ## Requirements
 
 - Python 3.x
-- NumPy
 
 ## Installation
 
 1. Clone the repository:
    
     ```sh
-    git clone https://github.com/yourusername/basic-neural-network.git
+    git clone https://github.com/yourusername/repository_name.git
     ```
 3. Navigate to the project directory:
    
     ```sh
-    cd basic-neural-network
+    cd repository_name
     ```
 5. (Optional) Create a virtual environment:
    
@@ -63,12 +61,13 @@ This repository contains a basic implementation of a neural network, aiming to p
 
 ## Usage
 
-1. Run the tests script to train and test the neural network:
-    ```sh
-    python test_minst.py
-    ```
+## Dataset
 
-2. Modify the `network1.py` and other scripts to experiment with different network architectures, learning rates, and datasets.
+The dataset should consist of video frames or images with handwritten digits, annotated with bounding boxes. You can use existing datasets like MNIST and augment them to create video sequences.
+
+## Contributors
+- [Emilio Rodrigo Carreira Villalta](https://github.com/rorro6787)
+- [Javier Montes Pérez](javimp2003uma)
 
 ## Contributing
 
@@ -82,7 +81,7 @@ Contributions are welcome! Please follow these steps:
 
 ## Acknowledgements
 
-- Inspired by various tutorials and resources on neural networks and machine learning and specially by Michael Nielsen book.
+- Inspired by various tutorials and resources on the YOLO documentation
 
 
 
