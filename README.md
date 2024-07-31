@@ -55,6 +55,12 @@ This repository contains a basic implementation of a neural network, aiming to p
     pip install -r requirements.txt
     ```
 
+7. If you want to do a pull request which implies adding more dependencias, remember to update the requirements file using:
+   
+    ```sh
+    pip freeze > requirements.txt
+    ```
+
 ## Usage
 
 1. Run the main script to train and test the neural network:
