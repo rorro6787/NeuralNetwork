@@ -5,7 +5,7 @@ import networkx as nx
 import random
 
 def sigmoid(z: float) -> float:
-    return 1/(1+np.exp(-z))
+    return 1.0/(1.0+np.exp(-z))
 
 def sigmoid_prime(z):
     return sigmoid(z)*(1-sigmoid(z))
@@ -27,7 +27,6 @@ def plot_function(function=sigmoid):
     plt.legend()
     plt.grid(True)
     plt.show()
-
 class Network(object):
     def __init__(self, sizes: List[int]):
         """
@@ -38,11 +37,10 @@ class Network(object):
         Args:
             sizes (List[int]): The dimensions of our neural network
         """
-
         # Dimensions of the neural network
-        self.sizes = sizes
+        self.num_layers = len(sizes)
         # Number of layers in the neural network
-        self.size = len(sizes)
+        self.sizes = sizes
         """
         List with the matrixes of biases of the neural network 
         Disclaimer: the first layer is the imput layer
@@ -50,14 +48,14 @@ class Network(object):
                                                   [b],
                                                   [c]), List([d])]
         """
-        self.biases = [np.random.rand(y, 1) for y in sizes[1:]]
+        self.biases = [np.random.randn(y, 1) for y in sizes[1:]]
         """
         List with the matrixes of the weights of the neural network
         If sizes = [2, 3, 1], then weights = [List([a, b],
                                                    [c, d], 
                                                    [e, f]), List([h], [i], [j])]
         """
-        self.weights = [np.random.rand(y, x) for x, y in zip(sizes[:-1], sizes[1:])]
+        self.weights = [np.random.randn(y, x) for x, y in zip(sizes[:-1], sizes[1:])]
     
     def forward_propagation(self, input, activation=sigmoid):
         """
@@ -67,9 +65,9 @@ class Network(object):
         """
         for b, w in zip(self.biases, self.weights):
             input = activation(w @ input + b)
-        return input    
+        return input  
     
-    def SGD(self, train_data, epochs, mini_batch_size, learning_rate):
+    def SGD(self, train_data, epochs, mini_batch_size, learning_rate, test_data=None):
         """
         The function SGD divides the list of train_data in a list of minibatches
         that slides the original list given a mini_batch_size. Then it calculates the 
@@ -81,6 +79,7 @@ class Network(object):
             mini_batch_size: Size of the mini batches
             learning_rate: The learning rate of the network
         """
+        if test_data: n_test = len(test_data)
         n = len(train_data)
         for i in range(epochs):
             random.shuffle(train_data)
@@ -93,6 +92,14 @@ class Network(object):
             # ]
             for mini_batch in mini_batches:
                 self.mini_batch_GD(mini_batch, learning_rate)
+
+            if test_data:
+                test_results = [(np.argmax(self.forward_propagation(x)), y) for (x, y) in test_data]
+                output = sum(int(x == y) for (x, y) in test_results)
+                print(f"Epoch {i}: {output} / {n_test}")
+            else:
+                print(f"Epoch {i} complete")
+
     
     def mini_batch_GD(self, mini_batch, learning_rate):
         nabla_b = [np.zeros(b.shape) for b in self.biases]
@@ -126,7 +133,7 @@ class Network(object):
         nabla_w[-1] = np.dot(delta, activations[-2].transpose())
 
         # Backpropagate the error
-        for l in range(2, self.size):
+        for l in range(2, self.num_layers):
             z = zs[-l]
             sp = sigmoid_prime(z)
             delta = np.dot(self.weights[-l+1].transpose(), delta) * sp
@@ -138,13 +145,6 @@ class Network(object):
 
     def cost_derivative(self, output_activations, y):
         return (output_activations-y) 
-    
-    def SGD_test(self, test_data, epochs):
-        n = len(test_data)
-        for i in range(epochs):
-            test_results = [(np.argmax(self.feedforward(x)), y) for (x, y) in test_data]
-            output = sum(int(x == y) for (x, y) in test_results)
-            print(f"Epoch {i}: {output} / n")
     
     def draw_network(self):
         G = nx.Graph()
@@ -193,7 +193,7 @@ def main():
     # print(network.forward_propagation([[1], [2]], sigmoid))
     imput1 = np.array([[1],[2],[3]])
     print(imput1)
-    output1 = np.array([[1],[2],[3],[4]])
+    output1 = np.array([[0],[0],[0],[1]])
     #print(imput1-output1)
     a = [(imput1, output1)]
     print(network.weights)
@@ -201,6 +201,7 @@ def main():
     print("\n\n\n")
     # print(imput1)
     print(network.weights)
+    network.SGD_test(a, 2)
     # print(network.biases)
     # print(network.weights)
     # imput_data = [np.array([[1],[2]])][0]
