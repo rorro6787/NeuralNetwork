@@ -151,6 +151,13 @@ class Network(object):
     def cost_derivative(self, output_activations, y):
         return (output_activations-y) 
     
+    def SGD_test(self, test_data, epochs):
+        n = len(test_data)
+        for i in range(epochs):
+            test_results = [(np.argmax(self.feedforward(x)), y) for (x, y) in test_data]
+            output = sum(int(x == y) for (x, y) in test_results)
+            print(f"Epoch {i}: {output} / n")
+    
     def draw_network(self):
         G = nx.Graph()
         pos = {}
