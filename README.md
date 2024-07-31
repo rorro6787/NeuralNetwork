@@ -23,6 +23,7 @@ This repository contains a basic implementation of a neural network, aiming to p
 - Backpropagation
 - Training using gradient descent
 - Simple and easy-to-understand code
+- PDF explanation of all the code and calculus behind: [Donwload the PDF document](https://github.com/rorro6787/NeuralNetwork/blob/training/test/Neural_Network_Python.pdf)
 
 ## Requirements
 
