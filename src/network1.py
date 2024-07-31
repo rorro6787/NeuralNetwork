@@ -1,12 +1,14 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from typing import List
-from typing import Any
 import networkx as nx
 import random
 
 def sigmoid(z: float) -> float:
     return 1/(1+np.exp(-z))
+
+def sigmoid_prime(z):
+    return sigmoid(z)*(1-sigmoid(z))
 
 def relu(z: float) -> float:
     return np.maximum(0, z)
@@ -68,37 +70,15 @@ class Network(object):
         """
         self.weights = [np.random.rand(y, x) for x, y in zip(sizes[:-1], sizes[1:])]
     
-    def forward_propagation(self, imput, activation=sigmoid):
+    def forward_propagation(self, input, activation=sigmoid):
         """
         Given an imput to the neural network this function
         calculates the output given the weights, biases given the
         activation function
         """
         for b, w in zip(self.biases, self.weights):
-            imput = activation(w @ imput + b)
-        return imput
-    
-    def cuadratic_cost(self, data, activation=sigmoid) -> float:
-        """
-        The function cuadratic_cost calculates the MSE of the network to a given imput
-        sizes = [2, 4, 6], it would be a 3 layers neural network: the first layer with 2 
-        neurons, the second one with 4 and the third one with 6.
-
-        Args:
-            data: A list of the test objets which each one
-            of them consists of an imput with type undefined and the real output that is a 
-            list with as many values as output nodes has our network
-        """
-        cost: float = 0.0
-        for kv in data:
-            outp_real = kv[1] # [[1], [2]]
-            outp_model = self.forward_propagation(kv[0], activation) # [[0.9], [0.98]]
-            if len(outp_real) != len(outp_model):
-                raise Exception("Data test dimensions not valid")
-            model_substract = np.subtract(outp_real, outp_model) # [[1-0.9], [2-0.98]]
-            model_substract_square = np.square(model_substract) # [[res1^2], [res2^2]]
-            cost = np.sum(model_substract_square) # res1^2 + res2^2
-        return cost/(2*len(data))      
+            input = activation(w @ input + b)
+        return input    
     
     def SGD(self, train_data, epochs, mini_batch_size, learning_rate):
         """
@@ -126,7 +106,50 @@ class Network(object):
                 self.mini_batch_GD(mini_batch, learning_rate)
     
     def mini_batch_GD(self, mini_batch, learning_rate):
-        return 0
+        nabla_b = [np.zeros(b.shape) for b in self.biases]
+        nabla_w = [np.zeros(w.shape) for w in self.weights]
+    
+        for x, y in mini_batch:
+            delta_nabla_b, delta_nabla_w = self.backprop(x, y)
+            nabla_b = [nb+dnb for nb, dnb in zip(nabla_b, delta_nabla_b)]
+            nabla_w = [nw+dnw for nw, dnw in zip(nabla_w, delta_nabla_w)]
+            
+        self.weights = [w-(learning_rate/len(mini_batch))*nw for w, nw in zip(self.weights, nabla_w)]
+        self.biases = [b-(learning_rate/len(mini_batch))*nb for b, nb in zip(self.biases, nabla_b)]
+        
+
+    def backprop(self, x, y):
+        nabla_b = [np.zeros(b.shape) for b in self.biases]
+        nabla_w = [np.zeros(w.shape) for w in self.weights]
+        
+        # Forward Propagation
+        activation = x
+        activations = [x] 
+        zs = [] 
+        for b, w in zip(self.biases, self.weights):
+            z = np.dot(w, activation)+b
+            zs.append(z)
+            activation = sigmoid(z)
+            activations.append(activation)
+        
+        # Output layer error
+        delta = self.cost_derivative(activations[-1], y) * sigmoid_prime(zs[-1])
+        nabla_b[-1] = delta
+        nabla_w[-1] = np.dot(delta, activations[-2].transpose())
+
+        # Backpropagate the error
+        for l in range(2, self.num_layers):
+            z = zs[-l]
+            sp = sigmoid_prime(z)
+            delta = np.dot(self.weights[-l+1].transpose(), delta) * sp
+            
+            # Gradient of the cost function
+            nabla_b[-l] = delta
+            nabla_w[-l] = np.dot(delta, activations[-l-1].transpose())
+        return (nabla_b, nabla_w)
+
+    def cost_derivative(self, output_activations, y):
+        return (output_activations-y) 
     
     def draw_network(self):
         G = nx.Graph()
