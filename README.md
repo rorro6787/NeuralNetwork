@@ -10,7 +10,6 @@ Welcome to the Basic Neural Network repository! This project is dedicated to bui
 - [Installation](#installation)
 - [Usage](#usage)
 - [Contributing](#contributing)
-- [License](#license)
 - [Acknowledgements](#acknowledgements)
 
 ## Introduction
@@ -63,12 +62,12 @@ This repository contains a basic implementation of a neural network, aiming to p
 
 ## Usage
 
-1. Run the main script to train and test the neural network:
+1. Run the tests script to train and test the neural network:
     ```sh
-    python main.py
+    python test_minst.py
     ```
 
-2. Modify the `main.py` and other scripts to experiment with different network architectures, learning rates, and datasets.
+2. Modify the `network1.py` and other scripts to experiment with different network architectures, learning rates, and datasets.
 
 ## Contributing
 
@@ -80,15 +79,9 @@ Contributions are welcome! Please follow these steps:
 4. Push to the branch (`git push origin feature-branch`)
 5. Create a new Pull Request
 
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
 ## Acknowledgements
 
-- Inspired by various tutorials and resources on neural networks and machine learning.
-- Thanks to the open-source community for their invaluable contributions and support.
-
+- Inspired by various tutorials and resources on neural networks and machine learning and specially by Michael Nielsen book.
 
 
 
