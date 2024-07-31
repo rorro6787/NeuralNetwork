@@ -17,17 +17,6 @@ def softmax(z: float) -> float:
     exp_z = np.exp(z - np.max(z))
     return exp_z / np.sum(exp_z, axis=0, keepdims=True)
 
-def imput_vector(imput: List[float]):
-    """
-    Takes a network imput in the form [a_1, a_2, ..., a_n] and transforms 
-    it into a vector that satisfies the dimensions: [[a_1],
-                                                     [a_2]
-                                                     [...],
-                                                     [a_n]]
-    """
-    # return np.array([[value] for value in imput])
-    return [[value] for value in imput]
-
 def plot_function(function=sigmoid):
     x = np.linspace(-10, 10, 400)
     y = function(x)
@@ -115,8 +104,7 @@ class Network(object):
             nabla_w = [nw+dnw for nw, dnw in zip(nabla_w, delta_nabla_w)]
             
         self.weights = [w-(learning_rate/len(mini_batch))*nw for w, nw in zip(self.weights, nabla_w)]
-        self.biases = [b-(learning_rate/len(mini_batch))*nb for b, nb in zip(self.biases, nabla_b)]
-        
+        self.biases = [b-(learning_rate/len(mini_batch))*nb for b, nb in zip(self.biases, nabla_b)]      
 
     def backprop(self, x, y):
         nabla_b = [np.zeros(b.shape) for b in self.biases]
@@ -138,7 +126,7 @@ class Network(object):
         nabla_w[-1] = np.dot(delta, activations[-2].transpose())
 
         # Backpropagate the error
-        for l in range(2, self.num_layers):
+        for l in range(2, self.size):
             z = zs[-l]
             sp = sigmoid_prime(z)
             delta = np.dot(self.weights[-l+1].transpose(), delta) * sp
@@ -203,12 +191,16 @@ def main():
     network = Network([3, 30, 4])
     # network.draw_network()
     # print(network.forward_propagation([[1], [2]], sigmoid))
-    imput1 = imput_vector([1,2,3])
-    output1 = imput_vector([1,2,3,4])
+    imput1 = np.array([[1],[2],[3]])
+    print(imput1)
+    output1 = np.array([[1],[2],[3],[4]])
     #print(imput1-output1)
     a = [(imput1, output1)]
+    print(network.weights)
+    network.SGD(a, 3, 1, 1)
+    print("\n\n\n")
     # print(imput1)
-    print(network.cuadratic_cost(a, activation=sigmoid))
+    print(network.weights)
     # print(network.biases)
     # print(network.weights)
     # imput_data = [np.array([[1],[2]])][0]
