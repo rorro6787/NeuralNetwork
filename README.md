@@ -83,6 +83,3 @@ Contributions are welcome! Please follow these steps:
 ## Acknowledgements
 
 - Inspired by various tutorials and resources on neural networks and machine learning and specially by Michael Nielsen book.
-
-
-
