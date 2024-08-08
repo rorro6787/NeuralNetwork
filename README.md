@@ -54,6 +54,12 @@ This repository contains a basic implementation of a neural network, aiming to p
     ```sh
     pip install -r requirements.txt
     ```
+5. Select venv as your python interpreter (in VSC):
+   
+    ```sh
+    > Python: Select Interpreter
+    .\venv\Scripts\python.exe # On macOS/Linux use './venv/bin/python'
+    ```
 
 7. If you want to do a pull request which implies adding more dependencias, remember to update the requirements file using:
    
