@@ -1,13 +1,10 @@
 # Basic Neural Network in Python
-
 <div align="center">
   <p>
     <a href="https://github.com/rorro6787/rorro6787/blob/main/Images/red-abstracta.png" target="_blank">
       <img width="50%" src="https://raw.githubusercontent.com/rorro6787/rorro6787/main/Images/red-abstracta.png" alt="Red Abstracta"></a>
   </p>
 </div>
-
-
 Welcome to the Basic Neural Network repository! This project is dedicated to building a simple neural network from scratch using basic Python. It serves as an educational tool to understand the fundamental concepts behind neural networks without relying on advanced libraries.
 
 ## Table of Contents
