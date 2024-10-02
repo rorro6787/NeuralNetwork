@@ -1,0 +1,15 @@
+function result = CheckPattern(Data, W)
+    % Inicializa una variable para comprobar si todos los patrones están correctos
+    correctly_classified = true;
+    
+    for i = 1:size(Data, 1)
+        if(Signo() ~= Data(i, end))
+            correctly_classified = false;
+            break;
+        end
+    end
+    
+    % Retorna el resultado de la comprobación
+    result = correctly_classified;
+end
+

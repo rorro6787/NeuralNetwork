@@ -1,0 +1,11 @@
+function W = UpdateNet(W, LR, Output, Target, Input)
+    % Calcula el error
+    %diffW = LR * (Target-Output) * [Input-1]
+    error = Target - Output;
+    
+    % Actualiza los pesos de acuerdo al error y la tasa de aprendizaje
+    W = W + LR * error * [Input-1];
+    % W tiene dimensión K+1 porque tiene el sesgo. Input tiene dimensión K
+    % y lo hacemos tener dimensión K+1
+end
+
