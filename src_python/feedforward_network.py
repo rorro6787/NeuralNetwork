@@ -1,95 +1,123 @@
 import torch
-import torch.optim as optim
+import torch.nn.functional as F
+from torch.utils.data import DataLoader, random_split
 from torchvision import datasets, transforms
-from torch.utils.data import DataLoader
+import numpy as np
+import random
 
-# Parámetros principales
-input_dim = 28 * 28  # Tamaño de entrada de imágenes MNIST
-hidden_dim = 100  # Número de proyecciones aleatorias
-num_classes = 10  # Número de clases en MNIST
-kernel_param = 0.5  # Parámetro para el kernel gaussiano
-regularization_param = 0.01  # Parámetro de regularización
-batch_size = 64
-num_epochs = 5
-
-# Inicialización de pesos aleatorios para la proyección oculta (no se entrenan)
-random_weights = torch.randn(input_dim, hidden_dim)
-
-# Cargar el conjunto de datos MNIST
+print('Feedforward Network con Kernel RBF')
+# Configuración de la semilla para reproducibilidad
+torch.manual_seed(0)
+random.seed(0)
+np.random.seed(0)
+print(f'Semilla: {torch.initial_seed()}')
+# Parámetros
+gamma = 0.1  # Parámetro del kernel RBF
+C_values = [10**(-3), 10**(-2), 10**(-1), 1, 10, 100, 1000]  # Valores de regularización
+L_values = [50, 100, 500, 1000, 1500, 2000]  # Neuronas en la capa oculta
+print(f'Número de C: {len(C_values)}')
+# Transformaciones de datos para normalización
 transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
-train_dataset = datasets.MNIST(root='./data', train=True, transform=transform, download=True)
-train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
-# Inicializar pesos de salida como parámetros de clase con referencia para optimización
-output_reference_points = torch.randn(hidden_dim, num_classes, requires_grad=True)
+# Cargar dataset MNIST
+mnist = datasets.MNIST(root='./data', train=True, transform=transform, download=True)
+N = len(mnist)
+J = 10  # Número de clases
+print(f'Número de datos: {N}')
+# Partición de datos (75% entrenamiento, 25% test)
+train_size = int(0.75 * N)
+test_size = N - train_size
+train_dataset, test_dataset = random_split(mnist, [train_size, test_size])
+print(f'Número de datos de entrenamiento: {len(train_dataset)}')
+# Cargar datos en DataLoader
+train_loader = DataLoader(train_dataset, batch_size=len(train_dataset), shuffle=True)
+test_loader = DataLoader(test_dataset, batch_size=len(test_dataset), shuffle=True)
+print('Datos cargados')
+# Obtener datos de entrenamiento y prueba
+X_train, y_train = next(iter(train_loader))
+X_test, y_test = next(iter(test_loader))
+print('Datos obtenidos')
+# Redimensionar y escalar datos
+X_train = X_train.view(X_train.size(0), -1)
+X_test = X_test.view(X_test.size(0), -1)
+print('Datos redimensionados')
+# Normalización min-max
+X_train = (X_train - X_train.min()) / (X_train.max() - X_train.min())
+X_test = (X_test - X_test.min()) / (X_test.max() - X_test.min())
+print('Datos normalizados')
+# One-hot encoding de etiquetas
+Y_train = F.one_hot(y_train, J).float()
+Y_test = F.one_hot(y_test, J).float()
+print('One-hot encoding')
+# Partición de validación dentro del conjunto de entrenamiento (75% entrenamiento, 25% validación)
+train_val_size = int(0.75 * len(X_train))
+val_size = len(X_train) - train_val_size
+X_train_val, X_val = X_train[:train_val_size], X_train[train_val_size:]
+Y_train_val, Y_val = Y_train[:train_val_size], Y_train[train_val_size:]
+print(f'Número de datos de entrenamiento: {len(X_train_val)}')
+# Matriz de rendimiento
+Performance = torch.zeros(len(C_values), len(L_values))
+print(f'Número de iteraciones: {len(C_values) * len(L_values)}')
 
-# Definir el optimizador para actualizar solo los puntos de referencia de salida
-optimizer = optim.SGD([output_reference_points], lr=0.01)
+# Definir kernel RBF
+def rbf_kernel(X, W_hidden, gamma):
+    dist = torch.cdist(X, W_hidden) ** 2
+    return torch.exp(-gamma * dist)
 
-# Función de kernel gaussiano
-def gaussian_kernel(x, weights, kernel_param):
-    h = x @ weights  # Proyección aleatoria
-    return torch.exp(-kernel_param * (h ** 2))  # Aplicación del kernel gaussiano
+# Búsqueda de hiperparámetros
+for i, C in enumerate(C_values):
+    for j, L in enumerate(L_values):
+        # Generar pesos aleatorios para la capa oculta
+        W_hidden = torch.randn(X_train_val.size(1), L)
+        print(f'Iteración {i * len(L_values) + j + 1}: C={C}, L={L}')
+        # Aplicar kernel RBF
+        H = rbf_kernel(X_train_val, W_hidden.T, gamma)
+        
+        # Cálculo de los pesos de salida (regularización)
+        W_output = torch.linalg.solve(H.T @ H + (1 / C) * torch.eye(L), H.T @ Y_train_val)
+        
+        # Predicciones en el conjunto de validación
+        H_val = rbf_kernel(X_val, W_hidden.T, gamma)
+        Y_pred_val = H_val @ W_output
+        
+        # CCR en validación
+        Y_pred_classes = torch.argmax(Y_pred_val, dim=1)
+        Y_val_classes = torch.argmax(Y_val, dim=1)
+        CCR_val = (Y_pred_classes == Y_val_classes).float().mean().item()
+        print(f'CCR en Validación: {CCR_val}')
+        # Guardar rendimiento (CCR)
+        Performance[i, j] = CCR_val
 
-# Optimización de salida basada en eigenvalores
-def optimize_eigen(output_reference_points, h, target_class):
-    """
-    Realiza la optimización de eigenvalores proyectando la clase objetivo hacia el punto de referencia
-    y alejando las otras clases.
-    """
-    num_samples = h.shape[0]
-    M_class = torch.zeros(hidden_dim, hidden_dim)
-    M_non_class = torch.zeros(hidden_dim, hidden_dim)
+print('Búsqueda de hiperparámetros finalizada')
 
-    for i in range(num_samples):
-        h_i = h[i].view(-1, 1)  # Vector columna de h para cada muestra
-        if target_class[i] == 1:  # Si pertenece a la clase objetivo
-            M_class += h_i @ h_i.T  # Proyecta hacia el punto de referencia
-        else:
-            M_non_class += h_i @ h_i.T  # Proyecta lejos del punto de referencia
+# Seleccionar mejores C y L
+max_value = Performance.max()  # Encuentra el valor máximo de la matriz de rendimiento
+max_idx = Performance.argmax()  # Encuentra el índice lineal del valor máximo
+i, j = np.unravel_index(max_idx.item(), Performance.shape)
 
-    # Incorporar output_reference_points en la optimización
-    M_class += torch.mm(output_reference_points.view(-1, 1), output_reference_points.view(1, -1))
+Copt = C_values[i]
+Lopt = L_values[j]
+print(f'Mejor C: {Copt}')
+print(f'Mejor L: {Lopt}')
+# Entrenamiento final con C y L óptimos
+W_hidden_opt = torch.randn(X_train.size(1), Lopt)
+H_opt = rbf_kernel(X_train, W_hidden_opt.T, gamma)
+W_output_opt = torch.linalg.solve(H_opt.T @ H_opt + (1 / Copt) * torch.eye(Lopt), H_opt.T @ Y_train)
 
-    # Construcción del problema de eigenvalores regularizado
-    M_class += regularization_param * torch.eye(hidden_dim)  # Regularización en M_class
-    M_non_class += regularization_param * torch.eye(hidden_dim)  # Regularización en M_non_class
+# Predicciones en el conjunto de prueba
+H_test = rbf_kernel(X_test, W_hidden_opt.T, gamma)
+Y_pred_test = H_test @ W_output_opt
 
-    # Resolución del problema de eigenvalores
-    eig_vals, eig_vecs = torch.linalg.eigh(torch.inverse(M_class) @ M_non_class)
-    optimal_vector = eig_vecs[:, torch.argmax(eig_vals).item()]  # Vector asociado al mayor eigenvalor
-    return optimal_vector
+# CCR en prueba
+Y_pred_test_classes = torch.argmax(Y_pred_test, dim=1)
+Y_test_classes = torch.argmax(Y_test, dim=1)
+CCR_test = (Y_pred_test_classes == Y_test_classes).float().mean().item()
 
-# Entrenamiento del modelo
-for epoch in range(num_epochs):
-    for data, target in train_loader:
-        # Preparar datos
-        data = data.view(data.size(0), -1)  # Aplanar las imágenes (tamaño [batch_size, 784])
-        target_one_hot = torch.nn.functional.one_hot(target, num_classes=num_classes).float()  # Codificación one-hot
+# MSE en prueba
+MSE_test = F.mse_loss(Y_pred_test, Y_test).item()
 
-        # Paso 1: Proyección aleatoria con kernel
-        h = gaussian_kernel(data, random_weights, kernel_param)
-
-        # Paso 2: Optimización para cada clase
-        losses = []
-        for class_index in range(num_classes):
-            target_class = target_one_hot[:, class_index]
-            optimal_vector = optimize_eigen(output_reference_points[:, class_index], h, target_class)
-            
-            # Cálculo de la pérdida: Proyectar hacia o lejos del punto de referencia
-            proj_class = torch.mm(h[target_class == 1], optimal_vector.unsqueeze(1)).squeeze()
-            proj_non_class = torch.mm(h[target_class == 0], optimal_vector.unsqueeze(1)).squeeze()
-            
-            loss_class = ((proj_class - 1) ** 2).mean()  # Muestras de la clase objetivo cerca de 1
-            loss_non_class = (proj_non_class ** 2).mean()  # Muestras de otras clases cerca de 0
-            losses.append(loss_class + loss_non_class)
-
-        # Paso 3: Retropropagación y actualización
-        loss = torch.stack(losses).mean()  # Promedio de pérdidas de todas las clases
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-
-    print(f"Epoch {epoch + 1}/{num_epochs}, Pérdida: {loss.item():.4f}")
-
-print("Entrenamiento completado.")
+# Mostrar resultados
+print(f'Mejor C: {Copt}')
+print(f'Mejor L: {Lopt}')
+print(f'CCR en Test: {CCR_test}')
+print(f'MSE en Test: {MSE_test}')
